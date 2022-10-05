@@ -1,3 +1,25 @@
+# [4.3.0](https://github.com/orkestral/venom/compare/v4.2.3...v4.3.0) (2022-08-15)
+
+
+
+## [4.2.3](https://github.com/orkestral/venom/compare/v4.2.2...v4.2.3) (2022-08-08)
+
+
+
+## [4.2.2](https://github.com/orkestral/venom/compare/v4.2.1...v4.2.2) (2022-08-08)
+
+
+
+## [4.2.1](https://github.com/orkestral/venom/compare/v4.2.0...v4.2.1) (2022-08-08)
+
+
+### Bug Fixes
+
+* e.isLid is not a function ([88209cf](https://github.com/orkestral/venom/commit/88209cf86d706935bb5f59884097959bd32385e0))
+* queryExists ([267372a](https://github.com/orkestral/venom/commit/267372a7fa6183298965644983c3978521bb0fb9))
+
+
+
 # [4.2.0](https://github.com/orkestral/venom/compare/v4.1.0...v4.2.0) (2022-06-09)
 
 
