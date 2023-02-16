@@ -80,7 +80,7 @@
     "@types/node": "^18.11.10",
     "@types/puppeteer": "^5.4.6",
     "@types/sharp": "^0.30.5",
-    "@types/ws": "^8.5.3",
+    "@types/ws": "^8.5.4",
     "concurrently": "^7.6.0",
     "conventional-changelog-cli": "^2.2.2",
     "copy-webpack-plugin": "^10.2.4",
@@ -131,7 +131,7 @@
     "typedoc": "^0.23.21",
     "typedoc-default-themes": "^0.12.10",
     "winston": "^3.8.0",
-    "ws": "^8.8.0",
+    "ws": "^8.12.1",
     "yoo-hoo": "^1.2.0"
   },
   "optionalDependencies": {
