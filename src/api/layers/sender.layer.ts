@@ -66,6 +66,7 @@ import { Message, SendFileResult, SendStickerResult } from '../model';
 import { ChatState } from '../model/enum';
 import { ListenerLayer } from './listener.layer';
 import { Scope, checkValuesSender } from '../helpers/layers-interface';
+import { Serializable } from 'puppeteer';
 
 let obj: Scope;
 
@@ -86,24 +87,16 @@ export class SenderLayer extends ListenerLayer {
   public async sendListMenu(
     to: string,
     title: string,
-    subTitle: string,
     description: string,
     buttonText: string,
     menu: Array<any>
   ): Promise<Object> {
     return new Promise(async (resolve, reject) => {
       const result = await this.page.evaluate(
-        ({ to, title, subTitle, description, buttonText, menu }) => {
-          return WAPI.sendListMenu(
-            to,
-            title,
-            subTitle,
-            description,
-            buttonText,
-            menu
-          );
+        ({ to, title, description, buttonText, menu }) => {
+          return WAPI.sendListMenu(to, title, description, buttonText, menu);
         },
-        { to, title, subTitle, description, buttonText, menu }
+        { to, title, description, buttonText, menu }
       );
       if (result['erro'] == true) {
         return reject(result);
@@ -118,7 +111,8 @@ export class SenderLayer extends ListenerLayer {
    * @param to chat id: xxxxx@us.c
    * @param content text message
    */
-  public async sendText(to: string, content: string): Promise<Object> {
+  public async sendText(to: string, content: string, extra?: Serializable): Promise<Object> {
+    if (!extra) extra = {};
     return new Promise(async (resolve, reject) => {
       const typeFunction = 'sendText';
       const type = 'string';
@@ -143,16 +137,16 @@ export class SenderLayer extends ListenerLayer {
         return reject(validating);
       }
       const result = await this.page.evaluate(
-        ({ to, content }) => {
-          return WAPI.sendMessage(to, content);
+        ({ to, content, extra }) => {
+          return WAPI.sendMessage(to, content, extra);
         },
-        { to, content }
+        { to, content, extra }
       );
-      if (result['erro'] == true) {
-        return reject(result);
-      } else {
-        return resolve(result);
-      }
+      // if (result['erro'] == true) {
+      //   return reject(result);
+      // } else {
+      return resolve(result);
+      // }
     });
   }
 
@@ -327,6 +321,74 @@ export class SenderLayer extends ListenerLayer {
    * @param {string} subtitle the subtitle
    * @param {array} buttons arrays
    */
+  // public async sendButtons(
+  //   to: string,
+  //   title: string,
+  //   buttons: { buttonText: { displayText: string } }[],
+  //   subtitle: string
+  // ): Promise<object> {
+  //   return new Promise(async (resolve, reject) => {
+  //     const typeFunction = 'sendButtons';
+  //     const type = 'string';
+  //     const obj = 'object';
+  //     const check = [
+  //       {
+  //         param: 'to',
+  //         type: type,
+  //         value: to,
+  //         function: typeFunction,
+  //         isUser: true
+  //       },
+  //       {
+  //         param: 'title',
+  //         type: type,
+  //         value: title,
+  //         function: typeFunction,
+  //         isUser: true
+  //       },
+  //       {
+  //         param: 'buttons',
+  //         type: obj,
+  //         value: buttons,
+  //         function: typeFunction,
+  //         isUser: true
+  //       },
+  //       {
+  //         param: 'subtitle',
+  //         type: type,
+  //         value: subtitle,
+  //         function: typeFunction,
+  //         isUser: true
+  //       }
+  //     ];
+  //     const validating = checkValuesSender(check);
+  //     if (typeof validating === 'object') {
+  //       return reject(validating);
+  //     }
+
+  //     const result = await this.page.evaluate(
+  //       ({ to, title, buttons, subtitle }) => {
+  //         let options = {
+  //           useTemplateButtons: false,
+  //           createChat: true,
+  //           buttons: buttons,
+  //           title: title
+  //         };
+  //         return WPP.chat.sendTextMessage(to, subtitle, {
+  //           ...options,
+  //           waitForAck: true
+  //         });
+  //       },
+  //       { to, title, buttons, subtitle }
+  //     );
+
+  //     if (result['erro'] == true) {
+  //       return reject(result);
+  //     } else {
+  //       return resolve(result);
+  //     }
+  //   });
+  // }
   public async sendButtons(
     to: string,
     title: string,
@@ -474,50 +536,22 @@ export class SenderLayer extends ListenerLayer {
     to: string,
     content: string,
     quotedMsg: string
-  ): Promise<Message | object> {
-    return new Promise(async (resolve, reject) => {
-      const typeFunction = 'reply';
-      const type = 'string';
-      const check = [
-        {
-          param: 'to',
-          type: type,
-          value: to,
-          function: typeFunction,
-          isUser: true
-        },
-        {
-          param: 'content',
-          type: type,
-          value: content,
-          function: typeFunction,
-          isUser: true
-        },
-        {
-          param: 'quotedMsg',
-          type: type,
-          value: quotedMsg,
-          function: typeFunction,
-          isUser: false
-        }
-      ];
-      const validating = checkValuesSender(check);
-      if (typeof validating === 'object') {
-        return reject(validating);
-      }
-      const result: object = await this.page.evaluate(
-        ({ to, content, quotedMsg }) => {
-          return WAPI.reply(to, content, quotedMsg);
-        },
-        { to, content, quotedMsg }
-      );
+  ): Promise<Message> {
+    const result = await this.page.evaluate(
+      ({ to, content, quotedMsg }) => {
+        return WPP.chat.sendTextMessage(to, content, { quotedMsg });
+      },
+      { to, content, quotedMsg }
+    );
 
-      if (result['erro'] == true) {
-        reject(result);
-      } else {
-        resolve(result);
-      }
-    });
+    const message = (await this.page.evaluate(
+      (messageId: any) => WAPI.getMessageById(messageId),
+      result.id
+    )) as Message;
+    if (message['erro'] == true) {
+      throw message;
+    }
+    return message;
   }
 
   /**
@@ -944,6 +978,7 @@ export class SenderLayer extends ListenerLayer {
         { to, latitude, longitude, title }
       );
       if (result['erro'] == true) {
+        console.log(result);
         reject(result);
       } else {
         resolve(result);
